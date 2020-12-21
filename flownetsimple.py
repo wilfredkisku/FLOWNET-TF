@@ -101,33 +101,48 @@ class preprocessing:
                     X_train[cnt_iter] = img_stacked
 
                     #method call to the flow to vector conversion algorithmin the utilities
-                    img_y_ = flo_to_vector(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k])))
+                    #img_y_ = flo_to_vector(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k])))
+                    img_y_ = flowToArray(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k])))
                     Y_train[cnt_iter] = img_y_[26:410,l:r,:]
 			
                     cnt_iter += 1
         return X_train, Y_train
 
     def createDatasetPrediction(X_train, Y_train, list_x_dirs, list_y_dirs, x_files_dict, y_files_dict):
+        #print(X_train.shape)
+        #print(Y_train.shape)
+
+        #print(list_x_dirs)
+        #print(list_y_dirs)
+
+        #print(x_files_dict)
+        #print(y_files_dict)
+        
+        cnt_iter = 0
         #iterates over the number of directories in the training folder (needs to iterate over all the folders)
         for i in range(len(x_dirs)):
             #iterate over the directories that contain a particular scenes
             for j in tqdm(range(len(list_x_dirs)), desc="Processing"):
                 #iterate over files inside each of these folders that contain the frame t,t+1, .... , t+n instances
-                for k in range(len(x_files_dict[list_x_dirs[j]])-1):
-                    img_x_1_ = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k])), cv2.IMREAD_COLOR)
-                    img_x_2_ = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k+1])), cv2.IMREAD_COLOR)
-                    img_x_1 = img_x_1_[26:410,l:r,:]
-                    img_x_2 = img_x_2_[26:410,l:r,:]
-                    img_stacked = np.concatenate((img_x_1 ,img_x_2),axis=2)
-                    X_train[cnt_iter] = img_stacked
+                for k in range(len(x_files_dict[list_x_dirs[j]])-2):
+        
+                    #img_x_1_ = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k])), cv2.IMREAD_COLOR)
+                    #img_x_2_ = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k+1])), cv2.IMREAD_COLOR)
+                    
+                    #img_x_1 = img_x_1_[26:410,l:r,:]
+                    #img_x_2 = img_x_2_[26:410,l:r,:]
+                    
+                    #img_stacked = np.concatenate((img_x_1 ,img_x_2),axis=2)
+                    #X_train[cnt_iter] = img_stacked
 
                     #method call to the flow to vector conversion algorithmin the utilities
-                    img_y_ = flo_to_vector(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k+1])))
+                    img_y_ = utilsProcessing.flowToArray(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k+1])))
                     Y_train[cnt_iter] = img_y_[26:410,l:r,:]
 
                     cnt_iter += 1
         
         return X_train, Y_train
+        
 
 '''
 Class Name: flownetS
@@ -316,8 +331,8 @@ if __name__ == '__main__':
         if isinstance(y_files_dict[j], list):
             cnt_y += len(y_files_dict[j])
 
-    print('The count of the number of file in the x folder: ', cnt_x)
-    print('The count of the number of file in the y folder: ', cnt_y)
+    #print('The count of the number of file in the x folder: ', cnt_x)
+    #print('The count of the number of file in the y folder: ', cnt_y)
     
     ##### Phase II #####
     '''
@@ -330,11 +345,12 @@ if __name__ == '__main__':
     X_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
     Y_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
 
-    print(X_train.shape)
-    print(Y_train.shape)
+    #print(X_train.shape)
+    #print(Y_train.shape)
 
-    #preprocessing.createDatasetPrediction(X_train, Y_train, lst_x_dirs, lst_y_dirs, x_files_dict, y_files_dict)
+    X_train, Y_train = preprocessing.createDatasetPrediction(X_train, Y_train, lst_x_dirs, lst_y_dirs, x_files_dict, y_files_dict)
     
+    print(Y_train[cnt_n*3 - 1])
     ##### Phase III #####
     '''
     model = flownetS.net()
