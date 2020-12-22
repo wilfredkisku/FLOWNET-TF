@@ -343,7 +343,7 @@ if __name__ == '__main__':
     #X_train, Y_train = preprocessing.createDatasetPrediction(X_train, Y_train, lst_x_dirs, lst_y_dirs, x_files_dict, y_files_dict)
     
     #print(Y_train[cnt_n*3 - 1])
-    
+    print(cnt_n)
     ##### Phase III #####
     
     model = flownetS.net()
@@ -353,9 +353,9 @@ if __name__ == '__main__':
     results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[checkpointer])
 
     hist_df = pd.DataFrame(results.history)
-    hist_csv_file = 'history.csv'
+    hist_csv_file = 'models/history.csv'
     
-    with open('models/'+hist_csv_file, mode = 'w') as f:
+    with open(hist_csv_file, mode = 'w') as f:
         hist_df.tocsv(f)
     
     ##### Modules test #####
