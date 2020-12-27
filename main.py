@@ -22,6 +22,10 @@ from utilities.cameraUtils import Camera
 
 from tensorflow.keras.models import load_model
 
+IMG_HEIGHT = 384
+IMG_WIDTH = 512
+IMG_CHANNELS = 3
+
 #testing classicalUtils
 def testingUtils():
     img1 = cv2.imread('./data/foreman/frame5.png', cv2.IMREAD_GRAYSCALE)
@@ -111,5 +115,29 @@ def testingModels():
     # show the plot
     plt.show()
 
+    files = os.listdir('data/foreman/')
+    files.sort()
+
+    test_files = np.zeros((len(files)-2,IMG_HEIGHT,IMG_WIDTH,IMG_CHANNELS*2), dtype=np.uint8)
+    p_ = Path('data/foreman/')
+    for f in range(0,len(files)-1):
+        f1 = str(p_.joinpath(files[f]))
+        f2 = str(p_.joinpath(files[f+1]))
+        print(f1)
+        img_a = cv2.imread(f1)
+        img_b = cv2.imread(f2)
+        f_a_np_r = cv2.resize(img_a, (IMG_WIDTH, IMG_HEIGHT), interpolation = cv2.INTER_CUBIC)
+        f_b_np_r = cv2.resize(img_b, (IMG_WIDTH, IMG_HEIGHT), interpolation = cv2.INTER_CUBIC)
+
+        f_stack = np.concatenate((f_a_np_r,f_b_np_r), axis = 2)
+        test_files[f-1] = f_stack
+    
+    pred_test = model.predict(test_files, verbose=1)
+
+    step = 8
+
+    fig1, ax1 = plt.subplots(figsize=(5,5))
+    ax1.quiver(np.arange(0, pred_test[0].shape[1], step), np.arange(pred_test[0].shape[0], 0, -step), pred_test[0][::step, ::step, 0], pred_test[0][::step, ::step, 1], color='r')
+    plt.show()
 if __name__ == "__main__":
     testingModels()
