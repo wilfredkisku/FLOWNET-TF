@@ -10,7 +10,7 @@ import numpy as np
 import time
 import tensorflow as tf
 import matplotlib.pyplot as plt
-
+import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 from skimage.io import imread, imshow, show
@@ -51,8 +51,8 @@ class preprocessing:
         Exrtact the 
         '''
         
-        TRAIN_PATH = 'data/training/'
-        TEST_PATH = 'data/test/'
+        TRAIN_PATH = '/workspace/storage/flownet-tf/data/training/'
+        TEST_PATH = '/workspace/storage/flownet-tf/data/test/'
 
         p = Path(TRAIN_PATH)
         
@@ -108,8 +108,7 @@ class preprocessing:
                     cnt_iter += 1
         return X_train, Y_train
 
-    def createDatasetPrediction(X_train, Y_train, list_x_dirs, list_y_dirs, x_files_dict, y_files_dict):
-        
+    def createDatasetPrediction(X_train, Y_train, list_x_dirs, list_y_dirs, x_files_dict, y_files_dict): 
         cnt_iter = 0
         #iterates over the number of directories in the training folder (needs to iterate over all the folders)
         for i in range(len(x_dirs)):
@@ -125,11 +124,11 @@ class preprocessing:
                     img_x_2 = img_x_2_[26:410,l:r,:]
                     
                     img_stacked = np.concatenate((img_x_1 ,img_x_2),axis=2)
-                    X_train[cnt_iter] = img_stacked
+                    X_train[cnt_iter]= img_stacked
 
                     #method call to the flow to vector conversion algorithmin the utilities
                     img_y_ = utilsProcessing.flowToArray(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k+1])))
-                    Y_train[cnt_iter] = img_y_[26:410,l:r,:]
+                    Y_train[cnt_iter]= img_y_[26:410,l:r,:]
 
                     cnt_iter += 1
         
@@ -289,7 +288,7 @@ class flownetS:
         #model creation and training/save
         model = flownetS.net()
         model.summary()
-        checkpointer = ModelCheckpoint('models/flowNetSimple_1000.h5', verbose=1, save_best_only=True)
+        checkpointer = ModelCheckpoint('/workspace/storage/flownet-tf/models/flowNetSimple_1000.h5', verbose=1, save_best_only=True)
         results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[checkpointer])
 
         hist_df = pd.DataFrame(results.history)
@@ -310,8 +309,8 @@ if __name__ == '__main__':
 
     x_files_dict, y_files_dict = preprocessing.listFileAsDict(p, x_files_dict, y_files_dict, lst_x_dirs, lst_y_dirs)
 
-    #print(x_files_dict)
-    #print(y_files_dict)
+    print(x_files_dict)
+    print(y_files_dict)
 
     cnt_x = 0
     cnt_y = 0
@@ -334,30 +333,34 @@ if __name__ == '__main__':
     '''
     cnt_n = cnt_y - 23
 
+    print(cnt_n)
+
     X_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
     Y_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
 
     #print(X_train.shape)
     #print(Y_train.shape)
 
-    #X_train, Y_train = preprocessing.createDatasetPrediction(X_train, Y_train, lst_x_dirs, lst_y_dirs, x_files_dict, y_files_dict)
+    X_train, Y_train = preprocessing.createDatasetPrediction(X_train, Y_train, lst_x_dirs, lst_y_dirs, x_files_dict, y_files_dict)
     
     #print(Y_train[cnt_n*3 - 1])
     print(cnt_n)
     ##### Phase III #####
     
     model = flownetS.net()
-    model.summary()
+    #model.summary()
     
-    checkpointer = ModelCheckpoint('models/flowNetSimple_1000.h5', verbose=1, save_best_only=True)
-    results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[checkpointer])
+    checkpointer = ModelCheckpoint('/workspace/storage/flownet-tf/models/flowNetSimple_2000.h5', verbose=1, save_best_only=True)
+    results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=2000, callbacks=[checkpointer])
 
     hist_df = pd.DataFrame(results.history)
-    hist_csv_file = 'models/history.csv'
+    hist_csv_file = '/workspace/storage/flownet-tf/models/history.csv'
     
     with open(hist_csv_file, mode = 'w') as f:
-        hist_df.tocsv(f)
+        hist_df.to_csv(f)
     
+    print('End of training ...')
+
     ##### Modules test #####
     #flow = utilsProcessing.flowToArray('/home/wilfred/Datasets/MPI-Sintel-complete/training/flow/alley_1/frame_0001.flo')
     #print("The horizontal direction vector.")
