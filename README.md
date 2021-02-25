@@ -3,7 +3,22 @@ Flownet architecture is a simplified structure for end to end learning for predi
 
 ## Flownet 1.0 algorithm
 
+<ul>
+  <li>[Images, Flows{u,v}] := preprocessing(Path)</li>
+  <li>[trainImages,trainFlow{u,v}] := obtainTrainingData([Images, Flows{u,v}])</li>
+  <li>[trainedModel] := train(Adam[[trainImages,trainFlow{u,v}]])</li>
+  <li>[weightsParams, accuracy] := [trainedModel]</li>
+  <li>[prediction{u, v}] := [trainedModel, predictImage[frame1, frame2]]</li>
+</ul>
+
 ## Flownet 2.0 algorithm
+
+<ul>
+  <li></li>
+  <li></li>
+  <li></li>
+</ul>
+
 
 ## Usage
 
