@@ -6,6 +6,7 @@ copy of this license along this program.
 Copyright 2020, wilfred kisku <kisku.1@iitj.ac.in>
 All rights reserved.
 '''
+
 from pathlib import Path
 from scipy.ndimage.filters import convolve as filter2
 
@@ -150,6 +151,9 @@ if __name__ == "__main__":
     img1 = cv2.imread('../data/foreman/frame1.png',0)
     img2 = cv2.imread('../data/foreman/frame3.png',0)
     ex, ey, et = classicalUtilitiesHS.derivative(img1, img2)
+    print('')
     print(ex)
+    print('')
     print(ey)
+    print('')
     print(et)
