@@ -1,46 +1,48 @@
-'''
-This program is free software: you can use, modify and/or redistribute it
-under the terms of the simplified BSD License. You should have received a
-copy of this license along this program.
-
-Copyright 2020, wilfred kisku <kisku.1@iitj.ac.in>
-All rights reserved.
-'''
-
 import os
+import sys
 import cv2
 import time
+import warnings
 import numpy as np
-import matplotlib.pyplot as plt
-import sys
-from imageio import imread
-
+import pandas as pd
 import pathlib as Path
-#import tensorflow as tf
+import matplotlib.pyplot as plt
+
+from imageio import imread
+from tqdm import tqdm
+from pathlib import Path
+from skimage.io import imread, imshow, show
 
 class preprocessing:
-    def setPathSintel():
-        '''
-        Exrtact the 
-        '''
+    def __init__(self):
+        self.IMG_HEIGHT = 384
+        self.IMG_WIDTH = 512
+        self.IMG_CHANNELS = 3
+        self.FLO_CHANNELS = 2
 
-        TRAIN_PATH = '/workspace/storage/flownet-tf/data/training/'
-        TEST_PATH = '/workspace/storage/flownet-tf/data/test/'
+        self.x_dirs = ['albedo', 'clean', 'final']
+        self.y_dirs = ['flow']
 
-        p = Path(TRAIN_PATH)
+        self.TRAIN_PATH = '/home/wilfred/Datasets/testFolder/data/training/'
+        self.TEST_PATH = '/home/wilfred/Datasets/testFolder/data/test/'
+
+    def setPathSintel(self):
+
+        p = Path(self.TRAIN_PATH)
 
         list_x_dirs = []
         list_y_dirs = []
 
         try:
-            list_x_dirs = next(os.walk(p.joinpath(x_dirs[0])))[1]
-            list_y_dirs = next(os.walk(p.joinpath(y_dirs[0])))[1]
+            list_x_dirs = next(os.walk(p.joinpath(self.x_dirs[0])))[1]
+            list_y_dirs = next(os.walk(p.joinpath(self.y_dirs[0])))[1]
         except StopIteration:
             pass
 
         list_x_dirs.sort()
         list_y_dirs.sort()
-        return p, list_x_dirs, list_y_dirs
+
+        return list_x_dirs, list_y_dirs
 
     def listFiles(p, list_x_dirs, list_y_dirs):
         x_files_dict = {dirs_: [] for dirs_ in list_x_dirs}
@@ -170,3 +172,9 @@ if __name__ == '__main__':
     '''
     #utilsProcessing.quiverPlot()
     #utilsProcessing.filesDisplay()
+
+    obj = preprocessing()
+    x, y = obj.setPathSintel()
+
+    print(x)
+    print(y)
