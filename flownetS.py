@@ -25,44 +25,17 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from utilities.utils import utilsProcessing
 
-#images reduced to these parameters
-IMG_HEIGHT = 384
-IMG_WIDTH = 512
-IMG_CHANNELS = 3
-FLO_CHANNELS = 2
-
-x_dirs = ['albedo', 'clean', 'final']
-y_dirs = ['flow']
-
-l = 256
-r = 768
-
-'''
-Class Name: flownetS
-methods: custom_loss_function()
-         net()
-         displayResults()
-         makePrediction()
-         mainFlowS()
-'''
 class flownetS:
-
+    
     def custom_loss_function(y_actual, y_predicted):
-        '''
-        compute the loss function that amounts to the mean squared error. 
-        '''
         y_predicted = tf.convert_to_tensor(y_predicted)
         y_actual = tf.cast(y_actual, y_predicted.dtype)
         custom_loss_value = tf.math.reduce_mean(tf.math.reduce_sum(tf.norm(y_actual - y_predicted)))
         return custom_loss_value
 
     def net():
-        '''	
-        Method defines the input/output and the network architecture model.
-        '''
         inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2))
 
-        #since the images are normalized already in the 
         inputs_norm = Lambda(lambda x:x / 255)(inputs)
 
         conv1 = Conv2D(64,(7,7), padding='same')(inputs_norm)
@@ -135,9 +108,6 @@ class flownetS:
 	
 	
     def displayResults():
-        '''
-        Plot the Accuracy vs Epochs and Loss vs Epochs.
-        '''
         plt.plot(results.history['accuracy'])
         plt.title('model accuracy')
         plt.ylabel('accuracy')
@@ -154,11 +124,6 @@ class flownetS:
         return None
 		
     def makePrediction(img1,img2):
-        '''
-        Make prediction on the saved model in the ./models folder.
-        The file dimensions are to be 384 X 512 X 3 and after the two images are concatenated to form the input
-        it is supposed to be of the dimension 384 X 512 X 6.
-        '''
         model = load_model('./models/flowNetSimple_1000.h5')
         img_stack = np.zeros((1, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype = np.uint8)
         img_stack[0] = np.concatenate((img1, img2), axis = 2)
@@ -168,89 +133,11 @@ class flownetS:
         print(pred_test[0].shape)
         print(pred_test[0])
         return None
-
-    def mainFlownetS():
-        '''
-        Main flownet simple method to call the other methods and test the general algorithm.
-        Preprocessing would require a lot of data handle and cleaning and also tensorflow pipelining of data.
-        '''
-        X_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
-        Y_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
 		
-        #dataset preprocessing
-        sys.stdout.flush()
-        print('Getting and stacking train images and label images ... ')
-        cnt_iter = 0
-        for i in range(1):
-            l = 256
-            r = 768
-            X_train, Y_train = preprocessing.crateDataset(X_train, Y_train, cnt_iter, l, r)
-        sys.stdout.flush()
-
-        #model creation and training/save
-        model = flownetS.net()
-        model.summary()
-        checkpointer = ModelCheckpoint('/workspace/storage/flownet-tf/models/flowNetSimple_1000.h5', verbose=1, save_best_only=True)
-        results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[checkpointer])
-
-        hist_df = pd.DataFrame(results.history)
-        hist_csv_file = 'models/history.csv'
-        with open(hist_csv_file, mode='w') as f:
-            hist_df.to_csv(f)
-		
-        #prediction and validation of the trained model
-
 if __name__ == '__main__':
-    '''
-    Test the methods for actual deploy.
-    '''
     
-    ##### Phase I #####
-    p, lst_x_dirs, lst_y_dirs = preprocessing.setPathSintel()
-    x_files_dict, y_files_dict = preprocessing.listFiles(p, lst_x_dirs, lst_y_dirs)
-
-    x_files_dict, y_files_dict = preprocessing.listFileAsDict(p, x_files_dict, y_files_dict, lst_x_dirs, lst_y_dirs)
-
-    print(x_files_dict)
-    print(y_files_dict)
-
-    cnt_x = 0
-    cnt_y = 0
-    for i in x_files_dict:
-        if isinstance(x_files_dict[i], list):
-            cnt_x += len(x_files_dict[i])
-    
-    for j in y_files_dict:
-        if isinstance(y_files_dict[j], list):
-            cnt_y += len(y_files_dict[j])
-
-    #print('The count of the number of file in the x folder: ', cnt_x)
-    #print('The count of the number of file in the y folder: ', cnt_y)
-    
-    ##### Phase II #####
-    '''
-    The preprocessed dataset need to be assigned a format that incuded cosecutive frames as the input.
-    Also, the y values are the [U,V] vectors that would be extracted from the training.
-
-    '''
-    cnt_n = cnt_y - 23
-
-    print(cnt_n)
-
-    X_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
-    Y_train = np.zeros((cnt_n*3,IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
-
-    #print(X_train.shape)
-    #print(Y_train.shape)
-
-    X_train, Y_train = preprocessing.createDatasetPrediction(X_train, Y_train, lst_x_dirs, lst_y_dirs, x_files_dict, y_files_dict)
-    
-    #print(Y_train[cnt_n*3 - 1])
-    print(cnt_n)
-    ##### Phase III #####
     
     model = flownetS.net()
-    #model.summary()
     
     checkpointer = ModelCheckpoint('/workspace/storage/flownet-tf/models/flowNetSimple_2000.h5', verbose=1, save_best_only=True)
     results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=2000, callbacks=[checkpointer])
@@ -261,14 +148,5 @@ if __name__ == '__main__':
     with open(hist_csv_file, mode = 'w') as f:
         hist_df.to_csv(f)
     
-    print('End of training ...')
+    print('End of Training!')
 
-    ##### Modules test #####
-    #flow = utilsProcessing.flowToArray('/home/wilfred/Datasets/MPI-Sintel-complete/training/flow/alley_1/frame_0001.flo')
-    #print("The horizontal direction vector.")
-    #print(flow[0])
-    #print(flow[0].max(), flow[0].min())
-    #print("The vertical direction vector.")
-    #print(flow[1])
-    #print(flow[1].max(), flow[1].min())
-    #utilsProcessing.quiverPlot(flow)

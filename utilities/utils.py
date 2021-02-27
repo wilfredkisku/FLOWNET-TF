@@ -15,7 +15,12 @@ from tqdm import tqdm
 from pathlib import Path
 from skimage.io import imread, imshow, show
 
+#*********************************************#
+#******* Data Processing tensorflow **********#
+#*********************************************#
+
 class preprocessingTF:
+    #input pipeline needs to be verified
     def __init__():
         self.IMG_HEIGHT = 436
         self.IMG_WIDTH = 1024
@@ -73,6 +78,10 @@ class preprocessingTF:
         test_dataset = test_dataset.batch(self.BATCH_SIZE)
         return None
 
+#****************************************#
+#************* Data Processing **********#
+#****************************************#
+
 class preprocessing:
     def __init__(self):
         self.IMG_HEIGHT = 436
@@ -118,43 +127,21 @@ class preprocessing:
             y_files_dict[list_y_dirs[i]] = n_lst
         return x_files_dict, y_files_dict
 
-    def createDataset(X_train, Y_train, cnt_iter):
-        for i in range(len(x_dirs)):
-            for j in tqdm(range(len(list_x_dirs)), desc="Processing"):
-                for k in range(len(x_files_dict[list_x_dirs[j]])-1):
-                    img_x_1 = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k])), cv2.IMREAD_COLOR)
-                    img_x_2 = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k+1])), cv2.IMREAD_COLOR)
-                    img_x_1 = img_x_1[26:410,l:r,:]
-                    img_x_2 = img_x_2[26:410,l:r,:]
-                    img_stacked = np.concatenate((img_x_1 ,img_x_2),axis=2)
-                    X_train[cnt_iter] = img_stacked
-
-                    #img_y_ = flo_to_vector(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k])))
-                    img_y_ = flowToArray(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k])))
-                    Y_train[cnt_iter] = img_y_[26:410,l:r,:]
-
-                    cnt_iter += 1
-        return X_train, Y_train
-
     def createDatasetPrediction(X_train, Y_train, list_x_dirs, list_y_dirs, x_files_dict, y_files_dict):
+        
+        p = Path(self.TRAIN_PATH)
         cnt_iter = 0
-        #iterates over the number of directories in the training folder (needs to iterate over all the folders)
-        for i in range(len(x_dirs)):
-            #iterate over the directories that contain a particular scenes
+        
+        for i in range(len(self.x_dirs)):
             for j in tqdm(range(len(list_x_dirs)), desc="Processing"):
-                #iterate over files inside each of these folders that contain the frame t,t+1, .... , t+n instances
                 for k in range(len(x_files_dict[list_x_dirs[j]])-2):
 
-                    img_x_1_ = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k])), cv2.IMREAD_COLOR)
-                    img_x_2_ = cv2.imread(str(p.joinpath(x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k+1])), cv2.IMREAD_COLOR)
-
-                    img_x_1 = img_x_1_[26:410,l:r,:]
-                    img_x_2 = img_x_2_[26:410,l:r,:]
+                    img_x_1_ = cv2.imread(str(p.joinpath(self.x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k])), cv2.IMREAD_COLOR)
+                    img_x_2_ = cv2.imread(str(p.joinpath(self.x_dirs[i]).joinpath(list_x_dirs[j]).joinpath(x_files_dict[list_x_dirs[j]][k+1])), cv2.IMREAD_COLOR)
 
                     img_stacked = np.concatenate((img_x_1 ,img_x_2),axis=2)
                     X_train[cnt_iter]= img_stacked
 
-                    #method call to the flow to vector conversion algorithmin the utilities
                     img_y_ = utilsProcessing.flowToArray(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k+1])))
                     Y_train[cnt_iter]= img_y_[26:410,l:r,:]
 
@@ -162,13 +149,10 @@ class preprocessing:
 
         return X_train, Y_train
 
+#*****************************************#
+#*********** Flow Processing *************#
+#*****************************************#
 
-'''
-className: utilsProcessing
-methods: quiverPlot()
-	 filesDisplay()
-	 flowToArray()
-'''
 class utilsProcessing:
     def warpImage(curImg, flow):
         h, w = flow.shape[:2]
@@ -182,10 +166,6 @@ class utilsProcessing:
         return None
 
     def filesDisplay(path):
-        '''
-        display the sequence of images in the path diretory provided 
-        at a frame rate of 1FPS. 
-        '''
         files = os.listdir(p)
         files.sort()
         for f in files:
@@ -200,9 +180,6 @@ class utilsProcessing:
         return None
 
     def quiverPlot(flow):
-        '''
-        Plot the quiver for the horizontal and vertical
-        '''
         steps = 20
         plt.quiver(np.arange(0,flow.shape[1],steps), np.arange(flow.shape[0], -1, -steps), flow[::steps, ::steps, 0], flow[::steps, ::steps, 1])
         plt.savefig("flowimage")
@@ -220,19 +197,20 @@ class utilsProcessing:
         return data2D
 
 if __name__ == '__main__':
-    '''
-    Confined testing of the module.
-    '''
-    #utilsProcessing.quiverPlot()
-    #utilsProcessing.filesDisplay()
 
     obj = preprocessing()
     x, y = obj.setPathSintel()
     x_f, y_f = obj.listFiles(x,y)
     x_files, y_files = obj.listFileAsDict(x_f,y_f,x,y)   
-   
-    keys_x = x_files.keys()
-    keys_y = y_files.keys()
+  
+    cnt_n = 0
 
-    for _,val in enumerate(keys_y):
-        print(len(x_files[val]), len(y_files[val]))
+    for idx, key in enumerate(x_files.keys()):
+        cnt_n += len(x_files[key])
+
+    X_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
+    Y_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
+
+    obj.createDatasetPrediction(X_train, Y_train, x, y, x_files, y_files)
+
+
