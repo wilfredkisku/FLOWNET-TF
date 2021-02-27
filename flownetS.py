@@ -24,17 +24,20 @@ from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from utilities.utils import utilsProcessing
+from utilities.utils import preprocessing
 
 class flownetS:
-    
+    def __init__(self):
+        self.IMG_CHANNELS = 3
+
     def custom_loss_function(y_actual, y_predicted):
         y_predicted = tf.convert_to_tensor(y_predicted)
         y_actual = tf.cast(y_actual, y_predicted.dtype)
         custom_loss_value = tf.math.reduce_mean(tf.math.reduce_sum(tf.norm(y_actual - y_predicted)))
         return custom_loss_value
 
-    def net():
-        inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2))
+    def net(self):
+        inputs = Input((None, None, self.IMG_CHANNELS*2))
 
         inputs_norm = Lambda(lambda x:x / 255)(inputs)
 
@@ -102,10 +105,8 @@ class flownetS:
         outputs = Conv2DTranspose(2,(5,5),strides=(4,4), padding='same')(deconv2)
 
         model = Model(inputs=[inputs], outputs=[outputs])
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-		
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])	
         return model
-	
 	
     def displayResults():
         plt.plot(results.history['accuracy'])
@@ -129,16 +130,32 @@ class flownetS:
         img_stack[0] = np.concatenate((img1, img2), axis = 2)
         pred_test = model.predict(img_stack, verbose = 1)
 
-        #plot the quiver for the pred_test
         print(pred_test[0].shape)
         print(pred_test[0])
-        return None
 		
 if __name__ == '__main__':
     
+    cnt_n = 0
+
+    obj = flownetS()
     
-    model = flownetS.net()
-    
+    model = obj.net()
+    model.summary()
+
+    objpre = preprocessing()
+    x, y = objpre.setPathSintel()
+    x_f, y_f = objpre.listFiles(x,y)
+    x_files, y_files = objpre.listFileAsDict(x_f,y_f,x,y)
+
+    for idx, key in enumerate(x_files.keys()):
+        cnt_n += len(x_files[key])
+
+    X_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
+    Y_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
+
+    obj.createDataset(X_train, Y_train, x, y, x_files, y_files)
+
+
     checkpointer = ModelCheckpoint('/workspace/storage/flownet-tf/models/flowNetSimple_2000.h5', verbose=1, save_best_only=True)
     results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=2000, callbacks=[checkpointer])
 

@@ -127,7 +127,7 @@ class preprocessing:
             y_files_dict[list_y_dirs[i]] = n_lst
         return x_files_dict, y_files_dict
 
-    def createDatasetPrediction(X_train, Y_train, list_x_dirs, list_y_dirs, x_files_dict, y_files_dict):
+    def createDataset(X_train, Y_train, list_x_dirs, list_y_dirs, x_files_dict, y_files_dict):
         
         p = Path(self.TRAIN_PATH)
         cnt_iter = 0
@@ -143,7 +143,7 @@ class preprocessing:
                     X_train[cnt_iter]= img_stacked
 
                     img_y_ = utilsProcessing.flowToArray(str(p.joinpath(y_dirs[0]).joinpath(list_y_dirs[j]).joinpath(y_files_dict[list_y_dirs[j]][k+1])))
-                    Y_train[cnt_iter]= img_y_[26:410,l:r,:]
+                    Y_train[cnt_iter]= copy.deepcopy(img_y_)
 
                     cnt_iter += 1
 
@@ -211,6 +211,4 @@ if __name__ == '__main__':
     X_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
     Y_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
 
-    obj.createDatasetPrediction(X_train, Y_train, x, y, x_files, y_files)
-
-
+    obj.createDataset(X_train, Y_train, x, y, x_files, y_files)
