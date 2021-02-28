@@ -1,5 +1,4 @@
 import os
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import sys
 import cv2
 import copy
@@ -9,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pathlib as Path
 import matplotlib.pyplot as plt
-import tensorflow as tf
+import tensoflow as tf
 
 from os.path import isfile, join
 from imageio import imread
@@ -223,6 +222,7 @@ if __name__ == '__main__':
 
     path = '/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo'
     data = utilsProcessing.flowToArray(path)
+    print(data[:,:,0])
+    print(data[:,:,1])
 
-    print(tf.convert_to_tensor(data[:,:,0]) - tf.convert_to_tensor(data[:,:,0]))
-    print(tf.convert_to_tensor(data[:,:,1]))
+    print(tf.convert_to_tensor(data[:,:,0]))
