@@ -1,10 +1,19 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Conv2D
+from tensorflow.keras.layers import Input, Conv2D, Lambda
 
-def correlationLayer():
-    
+def correlate():
+
+    return Lambda(lamdba x: tf.reduce_sum(tf.multiply(x[0],x[1]), axis = -1, keep_dims=True), name='correlate')
+
+def correlationLayer(max_disp=20,stride=2):
+    for i in range(-max_disp, max_disp + stride, stride):
+        for j in range(-max_disp, max_disp + stride, stride):
+            slice_ = get_padded_stride(conv3_pool_r,i,j,height_8,width_8)
+            current_layer = correlate([conv3_pool_l,slice_])
+            layer_list.append(current_layer)
+
     return None
 
 def net():
