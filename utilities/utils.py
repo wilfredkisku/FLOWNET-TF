@@ -10,7 +10,7 @@ import pandas as pd
 import pathlib as Path
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
+from tensorflow.keras.models import Model, load_model
 from os.path import isfile, join
 from imageio import imread
 from tqdm import tqdm
@@ -154,6 +154,30 @@ class preprocessing:
                     cnt_iter += 1
 
         return X_train, Y_train
+
+    def epeCalculate(actual, pred):
+        return tf.reduce_sum(tf.norm(actual-pred,axis=1))
+
+    def predict(model_path, img_path_1, img_path_2):
+        #requires the .h5 file that has the weights and baises from the trained model
+        #requires the path for the two consecutive images for obtaining quiver plot
+
+        model = load_model(model_path)
+        img_a = cv2.imread(img_path_1)
+        img_b = cv2.imread(img_path_2)
+        img_stack = np.concatenate((img_a,img_b), axis = 2)
+
+        pred_flo = np.zeros((1,img_a.shape[0],img_b.shape[0],6), dtype = np.uint8)
+        img_stack[0] = img_stack
+        pred_stack = model.predict(img_stack, verbose=1)
+
+        pred = pred_stack[0]
+        step = 16
+        plt.quiver(np.arange(0, pred.shape[1], step), np.arange(pred.shape[0], 0, -step), pred[::step, ::step, 0], pred[::step, ::step, 1], color='r')
+        plt.figsave('predicted_quiver.png')
+
+        return None
+
 
 #*****************************************#
 #*********** Flow Processing *************#
