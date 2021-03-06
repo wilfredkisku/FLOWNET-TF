@@ -156,7 +156,8 @@ class preprocessing:
         return X_train, Y_train
 
     def epeCalculate(self, actual, pred):
-        return tf.reduce_mean(tf.norm(actual-pred,axis=1))
+        #return tf.reduce_mean(tf.math.sqrt(tf.math.square(actual-pred)))
+        return tf.reduce_mean(tf.norm(actual - pred, ord = 2, axis = -1))
 
     def predict(self, model_path, img_path_1, img_path_2):
         #requires the .h5 file that has the weights and baises from the trained model
@@ -234,7 +235,7 @@ if __name__ == '__main__':
     '''
     img_path_1 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq01.png'
     img_path_2 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq02.png'
-    path = '/home/wilfred/Downloads/flowNetS-complete-500-1.h5'
+    path = '/home/wilfred/Downloads/flowNetS-complete-500.h5'
     
     obj = preprocessing()
     obj.predict(path,img_path_1,img_path_2)
@@ -245,11 +246,12 @@ if __name__ == '__main__':
     print(flow.shape)
 
     obj.quiverPlot(flow)
-    '''
     
+    '''
     obj = utilsProcessing()
     objpre = preprocessing()
     actual = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
-    pred = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0005.flo")
+    pred = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0002.flo")
 
     print(objpre.epeCalculate(actual, pred).numpy())
+    

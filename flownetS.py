@@ -21,23 +21,23 @@ from tensorflow.keras.layers import Conv2D, Conv2DTranspose, BatchNormalization
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import ReLU
 from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 
 from utilities.utils import utilsProcessing
 from utilities.utils import preprocessing
 
+def epe_loss_function(y_actual, y_predicted):
+    return tf.reduce_mean(tf.norm(y_actual - y_predicted, ord = 2, axis = -1))
+
+def scheduler(epoch, lr):
+    if epoch < 10:
+        return lr
+    else:
+        return lr * tf.math.exp(-1.0)
+
 class flownetS:
     def __init__(self):
         self.IMG_CHANNELS = 3
-
-    def epeloss(y_actual, y_predicted):
-        return tf.reduce_sum(tf.norm(y_actual-y_predicted,axis=1))
-
-    def custom_loss_function(y_actual, y_predicted):
-        y_predicted = tf.convert_to_tensor(y_predicted)
-        y_actual = tf.cast(y_actual, y_predicted.dtype)
-        custom_loss_value = tf.math.reduce_mean(tf.math.reduce_sum(tf.norm(y_actual - y_predicted)))
-        return custom_loss_value
 
     def net(self):
         inputs = Input((None, None, self.IMG_CHANNELS*2))
@@ -157,6 +157,7 @@ if __name__ == '__main__':
     obj.createDataset(X_train, Y_train, x, y, x_files, y_files)
 
     #checkpointer = ModelCheckpoint('./models/flownetS-weights-500.ckpt', verbose=1, save_weights_only=True, save_best_only=True)
+    #keras_checkpointers = [ModelCheckpoint('./models/flownetS-weights-500.ckpt', verbose=1, save_weights_only=True, save_best_only=True), LearningRateScheduler(scheduler)]
 
     checkpointer = ModelCheckpoint('./models/flowNetS-complete-500.h5', verbose=1, save_best_only=True)
     results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[checkpointer])
