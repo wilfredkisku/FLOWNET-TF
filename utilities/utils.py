@@ -155,27 +155,30 @@ class preprocessing:
 
         return X_train, Y_train
 
-    def epeCalculate(actual, pred):
-        return tf.reduce_sum(tf.norm(actual-pred,axis=1))
+    def epeCalculate(self, actual, pred):
+        return tf.reduce_mean(tf.norm(actual-pred,axis=1))
 
-    def predict(model_path, img_path_1, img_path_2):
+    def predict(self, model_path, img_path_1, img_path_2):
         #requires the .h5 file that has the weights and baises from the trained model
         #requires the path for the two consecutive images for obtaining quiver plot
-
+        
         model = load_model(model_path)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
+        img_a = img_a[:128,:,:]
+        img_b = img_b[:128,:,:]
+        plt.imshow(img_a)
         img_stack = np.concatenate((img_a,img_b), axis = 2)
-
-        pred_flo = np.zeros((1,img_a.shape[0],img_b.shape[0],6), dtype = np.uint8)
-        img_stack[0] = img_stack
-        pred_stack = model.predict(img_stack, verbose=1)
+        print(img_stack.shape)
+        pred_flo = np.zeros((1,img_a.shape[0],img_a.shape[1],6), dtype = np.uint8)
+        pred_flo[0] = img_stack
+        pred_stack = model.predict(pred_flo, verbose=1)
 
         pred = pred_stack[0]
-        step = 16
+        step = 8
         plt.quiver(np.arange(0, pred.shape[1], step), np.arange(pred.shape[0], 0, -step), pred[::step, ::step, 0], pred[::step, ::step, 1], color='r')
-        plt.figsave('predicted_quiver.png')
-
+        plt.savefig('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/predicted_seq_quiver.png')
+        plt.show()
         return None
 
 
@@ -209,13 +212,13 @@ class utilsProcessing:
         cv2.destroyAllWindows()
         return None
 
-    def quiverPlot(flow):
-        steps = 20
+    def quiverPlot(self, flow):
+        steps = 32
         plt.quiver(np.arange(0,flow.shape[1],steps), np.arange(flow.shape[0], -1, -steps), flow[::steps, ::steps, 0], flow[::steps, ::steps, 1])
-        plt.savefig("flowimage")
+        plt.savefig("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/flowimage.png")
         return None
 
-    def flowToArray(flowfile):
+    def flowToArray(self, flowfile):
         with open(flowfile, 'rb') as f:
             magic = np.fromfile(f, np.float32, count=1)
             if 202021.25 != magic:
@@ -229,24 +232,24 @@ class utilsProcessing:
 if __name__ == '__main__':
 
     '''
+    img_path_1 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq01.png'
+    img_path_2 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq02.png'
+    path = '/home/wilfred/Downloads/flowNetS-complete-500-1.h5'
+    
     obj = preprocessing()
-    x, y = obj.setPathSintel()
-    x_f, y_f = obj.listFiles(x,y)
-    x_files, y_files = obj.listFileAsDict(x_f,y_f,x,y)   
-  
-    cnt_n = 0
+    obj.predict(path,img_path_1,img_path_2)
+    
+    obj = utilsProcessing()
+    flow = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
 
-    for idx, key in enumerate(x_files.keys()):
-        cnt_n += len(x_files[key])
+    print(flow.shape)
 
-    X_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS*2), dtype=np.uint8)
-    Y_train = np.zeros(((cnt_n-(len(x_files.keys())*2))*3, IMG_HEIGHT, IMG_WIDTH, FLO_CHANNELS), dtype=np.float32)
-
-    obj.createDataset(X_train, Y_train, x, y, x_files, y_files)
+    obj.quiverPlot(flow)
     '''
+    
+    obj = utilsProcessing()
+    objpre = preprocessing()
+    actual = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
+    pred = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0005.flo")
 
-    path = '/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo'
-    data = utilsProcessing.flowToArray(path)
-
-    print(tf.convert_to_tensor(data[:,:,0]) - tf.convert_to_tensor(data[:,:,0]))
-    print(tf.convert_to_tensor(data[:,:,1]))
+    print(objpre.epeCalculate(actual, pred).numpy())

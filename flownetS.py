@@ -30,6 +30,9 @@ class flownetS:
     def __init__(self):
         self.IMG_CHANNELS = 3
 
+    def epeloss(y_actual, y_predicted):
+        return tf.reduce_sum(tf.norm(y_actual-y_predicted,axis=1))
+
     def custom_loss_function(y_actual, y_predicted):
         y_predicted = tf.convert_to_tensor(y_predicted)
         y_actual = tf.cast(y_actual, y_predicted.dtype)
