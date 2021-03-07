@@ -163,7 +163,7 @@ class preprocessing:
         #requires the .h5 file that has the weights and baises from the trained model
         #requires the path for the two consecutive images for obtaining quiver plot
         
-        model = load_model(model_path)
+        model = load_model(model_path, compile=False)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
         img_a = img_a[:128,:,:]
@@ -176,7 +176,7 @@ class preprocessing:
         pred_stack = model.predict(pred_flo, verbose=1)
 
         pred = pred_stack[0]
-        step = 8
+        step = 4
         plt.quiver(np.arange(0, pred.shape[1], step), np.arange(pred.shape[0], 0, -step), pred[::step, ::step, 0], pred[::step, ::step, 1], color='r')
         plt.savefig('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/predicted_seq_quiver.png')
         plt.show()
@@ -232,10 +232,11 @@ class utilsProcessing:
 
 if __name__ == '__main__':
 
-    '''
     img_path_1 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq01.png'
     img_path_2 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq02.png'
-    path = '/home/wilfred/Downloads/flowNetS-complete-500.h5'
+    #img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0001.png"
+    #img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0002.png"
+    path = '/home/wilfred/Downloads/flowNetS-complete-500-epe.h5'
     
     obj = preprocessing()
     obj.predict(path,img_path_1,img_path_2)
@@ -254,4 +255,4 @@ if __name__ == '__main__':
     pred = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0002.flo")
 
     print(objpre.epeCalculate(actual, pred).numpy())
-    
+    '''

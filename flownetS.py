@@ -33,7 +33,7 @@ def scheduler(epoch, lr):
     if epoch < 10:
         return lr
     else:
-        return lr * tf.math.exp(-1.0)
+        return lr/2
 
 class flownetS:
     def __init__(self):
@@ -108,7 +108,10 @@ class flownetS:
         outputs = Conv2DTranspose(2,(5,5),strides=(4,4), padding='same')(deconv2)
 
         model = Model(inputs=[inputs], outputs=[outputs])
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])	
+        
+        optimizers = tf.keras.optimizers.Adam(learning_rate=0.0001)
+
+        model.compile(optimizer=optimizers, loss = epe_loss_function, metrics=['accuracy'])	
         return model
 	
     def displayResults():
@@ -127,7 +130,7 @@ class flownetS:
         plt.show()
 		
     def makePrediction(img1,img2):
-        model = load_model('./models/flowNetSimple_500.h5')
+        model = load_model('./models/flowNetSimple_500-epe.h5')
         img_stack = np.zeros((1, img1.shape[0], img1.shape[1], IMG_CHANNELS*2), dtype = np.uint8)
         img_stack[0] = np.concatenate((img1, img2), axis = 2)
         pred_test = model.predict(img_stack, verbose = 1)
@@ -159,11 +162,12 @@ if __name__ == '__main__':
     #checkpointer = ModelCheckpoint('./models/flownetS-weights-500.ckpt', verbose=1, save_weights_only=True, save_best_only=True)
     #keras_checkpointers = [ModelCheckpoint('./models/flownetS-weights-500.ckpt', verbose=1, save_weights_only=True, save_best_only=True), LearningRateScheduler(scheduler)]
 
-    checkpointer = ModelCheckpoint('./models/flowNetS-complete-500.h5', verbose=1, save_best_only=True)
+    checkpointer = ModelCheckpoint('./models/flowNetS-complete-500-epe.h5', verbose=1, save_best_only=True)
+    #results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[keras_checkpointers])
     results = model.fit(X_train, Y_train, validation_split=0.1, batch_size=32, shuffle=True, epochs=500, callbacks=[checkpointer])
 
     hist_df = pd.DataFrame(results.history)
-    hist_csv_file = './models/flownetS-history-500.csv'
+    hist_csv_file = './models/flownetS-history-500-epe.csv'
     
     with open(hist_csv_file, mode = 'w') as f:
         hist_df.to_csv(f)
