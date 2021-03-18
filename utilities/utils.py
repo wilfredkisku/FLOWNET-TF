@@ -20,7 +20,6 @@ from skimage.io import imread, imshow, show
 #*********************************************#
 #******* Data Processing tensorflow **********#
 #*********************************************#
-
 class preprocessingTF:
     #input pipeline needs to be verified
     def __init__():
@@ -83,9 +82,9 @@ class preprocessingTF:
 #****************************************#
 #************* Data Processing **********#
 #****************************************#
-
 class preprocessing:
     def __init__(self):
+        #intializing for training with the SINTEL dataset
         self.IMG_HEIGHT = 436
         self.IMG_WIDTH = 1024
         self.IMG_CHANNELS = 3
@@ -166,8 +165,8 @@ class preprocessing:
         model = load_model(model_path, compile=False)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
-        img_a = img_a[180:,:,:]
-        img_b = img_b[180:,:,:]
+        img_a = img_a[:,:,:]
+        img_b = img_b[:,:,:]
         plt.imshow(img_a)
         img_stack = np.concatenate((img_a,img_b), axis = 2)
         pred_flo = np.zeros((1,img_a.shape[0],img_a.shape[1],6), dtype = np.uint8)
@@ -177,8 +176,7 @@ class preprocessing:
         pred = pred_stack[0]
         step = 4
         plt.quiver(np.arange(0, pred.shape[1], step), np.arange(pred.shape[0], 0, -step), pred[::step, ::step, 0], pred[::step, ::step, 1], color='r')
-        plt.savefig('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/predicted_seq_quiver.png')
-        plt.show()
+        plt.savefig('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/pred_frame_quiver.png')
         return pred
 
     def predictSequence(self, model_path, img_path_1, img_path_2, lpred):
@@ -190,8 +188,8 @@ class preprocessing:
         model = load_model(model_path, compile=False)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
-        img_a = img_a[180:,:,:]
-        img_b = img_b[180:,:,:]
+        img_a = img_a[:,:,:]
+        img_b = img_b[:,:,:]
 
         for i in range(lpred):
             img_stack = np.concatenate((img_a,img_b), axis = 2)
@@ -208,7 +206,6 @@ class preprocessing:
 #*****************************************#
 #*********** Flow Processing *************#
 #*****************************************#
-
 class utilsProcessing:
 
     def __init__(self):
@@ -220,9 +217,7 @@ class utilsProcessing:
         flow[:,:,0] += np.arange(w)
         flow[:,:,1] += np.arange(h)[:,np.newaxis]
         nxtImg = cv2.remap(curImg, flow, None, cv2.INTER_LINEAR)
-
-        cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/sb3_warped.png', nxtImg)
-
+        #cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/sb3_warped.png', nxtImg)
         return nxtImg
 
     def filesDisplay(path):
@@ -266,31 +261,39 @@ class utilsProcessing:
             print("Read a new frame: ", success)
             count += 1
         return None
+
+
 if __name__ == '__main__':
 
-    '''
     ######## input test images ########
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi08.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi09.png"
 
-    img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0009.png"
-    img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0010.png"
+    #img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0009.png"
+    #img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0010.png"
 
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame41.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame43.png"
 
+    #path for sequence of images
+    img_path = '/home/wilfred/Downloads/github/Python_projects/flownet-tf/data/videos'
+
     ####### input trained model #######
     path = '/home/wilfred/Downloads/flowNetS-complete-500-epe.h5'
     #path = '/home/wilfred/Downloads/flowNetS-complete-2000-epe.h5'
-    
+    #path = '/home/wilfred/Downloads/flowNetS-complete-2050-epe.h5'
+
     obj = preprocessing()
     flow = obj.predict(path,img_path_1,img_path_2)
     
     obj_ = utilsProcessing()
     img = cv2.imread(img_path_2)
-    img = img[180:,:,:]
+    img = img[:,:,:]
     print(flow.shape)
     obj_.warpImage(img, flow)
+    
     '''
+    #extract the frames from the image sequences for evaluation on the trained model
     obj = utilsProcessing()
     obj.extractFrames("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/video_coastguard.mp4")
+    '''
