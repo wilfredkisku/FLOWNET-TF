@@ -130,7 +130,7 @@ class flownetS:
         plt.show()
 		
     def makePrediction(img1,img2):
-        model = load_model('./models/flowNetSimple_500-epe.h5')
+        model = load_model('./models/flowNetS-complete-500-epe.h5')
         img_stack = np.zeros((1, img1.shape[0], img1.shape[1], IMG_CHANNELS*2), dtype = np.uint8)
         img_stack[0] = np.concatenate((img1, img2), axis = 2)
         pred_test = model.predict(img_stack, verbose = 1)

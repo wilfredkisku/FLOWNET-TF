@@ -180,7 +180,7 @@ class preprocessing:
         plt.quiver(np.arange(0, pred.shape[1], step), np.arange(pred.shape[0], 0, -step), pred[::step, ::step, 0], pred[::step, ::step, 1], color='r')
         plt.savefig('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/predicted_seq_quiver.png')
         plt.show()
-        return None
+        return pred
 
 
 #*****************************************#
@@ -188,14 +188,14 @@ class preprocessing:
 #*****************************************#
 
 class utilsProcessing:
-    def warpImage(curImg, flow):
+    def warpImage(self, curImg, flow):
         h, w = flow.shape[:2]
         flow = -flow
-        flow[:,:,0] += np.arange(w)
-        flow[:,:,1] += np.arange(h)[:,np.newaxis]
-        prevImg = cv2.remap(curImg, flow, None, cv.INTER_LINEAR)
+        flow[:128,:,0] += np.arange(w)
+        flow[:128,:,1] += np.arange(h)[:,np.newaxis]
+        nxtImg = cv2.remap(curImg, flow, None, cv2.INTER_LINEAR)
 
-        plt.savefig()
+        cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/car1_warped.png', nxtImg)
 
         return None
 
@@ -232,21 +232,32 @@ class utilsProcessing:
 
 if __name__ == '__main__':
 
-    img_path_1 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq01.png'
-    img_path_2 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/seq02.png'
+    img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi01.png"
+    img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi02.png"
+
     #img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0001.png"
     #img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0002.png"
+
+    #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame39.png"
+    #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame41.png"
+
+    #img_path_1 = "/home/wilfred/Datasets/KITTI/2011_09_26_drive_0017_extract/2011_09_26/2011_09_26_drive_0017_extract/image_01/data/0000000000.png"
+    #img_path_2 = "/home/wilfred/Datasets/KITTI/2011_09_26_drive_0017_extract/2011_09_26/2011_09_26_drive_0017_extract/image_01/data/0000000001.png"
+
     path = '/home/wilfred/Downloads/flowNetS-complete-500-epe.h5'
     
     obj = preprocessing()
-    obj.predict(path,img_path_1,img_path_2)
+    flow = obj.predict(path,img_path_1,img_path_2)
     
-    obj = utilsProcessing()
-    flow = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
+    obj_ = utilsProcessing()
+    img = cv2.imread(img_path_2)
+    img = img[:128,:,:]
+    obj_.warpImage(img, flow)
+    #flow = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
 
-    print(flow.shape)
+    #print(flow.shape)
 
-    obj.quiverPlot(flow)
+    #obj.quiverPlot(flow)
     
     '''
     obj = utilsProcessing()
