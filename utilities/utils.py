@@ -188,8 +188,8 @@ class preprocessing:
         model = load_model(model_path, compile=False)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
-        img_a = img_a[:,:,:]
-        img_b = img_b[:,:,:]
+        img_a = img_a[180:,:,:]
+        img_b = img_b[180:,:,:]
 
         for i in range(lpred):
             img_stack = np.concatenate((img_a,img_b), axis = 2)
@@ -200,8 +200,9 @@ class preprocessing:
 
             img_a = img_b
             img_b = obj.warpImage(img_b, pre)
-            cv2.imwrite("warped_"+str(i)+".png", img_b)
-        return pred
+            cv2.imwrite("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/predicted/sintel/warped_"+str(i)+".png", img_b)
+        
+        return None
 
 #*****************************************#
 #*********** Flow Processing *************#
@@ -217,7 +218,6 @@ class utilsProcessing:
         flow[:,:,0] += np.arange(w)
         flow[:,:,1] += np.arange(h)[:,np.newaxis]
         nxtImg = cv2.remap(curImg, flow, None, cv2.INTER_LINEAR)
-        #cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/sb3_warped.png', nxtImg)
         return nxtImg
 
     def filesDisplay(path):
@@ -255,8 +255,9 @@ class utilsProcessing:
         vid = cv2.VideoCapture(path)
         success, img = vid.read()
         count = 0
+        print(img)
         while success:
-            cv2.imwrite("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/coastguard/frame%d.png" % count, img)
+            cv2.imwrite("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/hall/frame%d.png" % count, img)
             success, img = vid.read()
             print("Read a new frame: ", success)
             count += 1
@@ -264,25 +265,38 @@ class utilsProcessing:
 
 
 if __name__ == '__main__':
-
+    
     ######## input test images ########
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi08.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi09.png"
 
-    #img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0009.png"
-    #img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0010.png"
+    img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0001.png"
+    img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0002.png"
 
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame41.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame43.png"
 
-    #path for sequence of images
-    img_path = '/home/wilfred/Downloads/github/Python_projects/flownet-tf/data/videos'
+    #path for sequence of images[foreman, coastguard, hall, football, sintel]
+    #img_path_1 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/hall/frame45.png'
+    #img_path_2 = '/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/hall/frame46.png'
 
     ####### input trained model #######
-    path = '/home/wilfred/Downloads/flowNetS-complete-500-epe.h5'
-    #path = '/home/wilfred/Downloads/flowNetS-complete-2000-epe.h5'
-    #path = '/home/wilfred/Downloads/flowNetS-complete-2050-epe.h5'
+    #model_path = '/home/wilfred/Downloads/flowNetS-complete-500-epe.h5'
+    #model_path = '/home/wilfred/Downloads/flowNetS-complete-2000-epe.h5'
+    model_path = '/home/wilfred/Downloads/flowNetS-complete-2050-epe.h5'
 
+    ########## Algorithm #################
+    #1. Obtain the image path with the initial frames
+    #2. Obtain the trained model file *.hd5
+    #3. Predict the frame {t+0,t+1} := t+2
+    #4. Predict consecutive frames using the predicted frames {a := b, b := predicted, c:= consecutive prediction}
+    
+    seqLen = 10
+
+    obj = preprocessing()
+    obj.predictSequence(model_path, img_path_1, img_path_2, seqLen)
+
+    '''
     obj = preprocessing()
     flow = obj.predict(path,img_path_1,img_path_2)
     
@@ -290,10 +304,9 @@ if __name__ == '__main__':
     img = cv2.imread(img_path_2)
     img = img[:,:,:]
     print(flow.shape)
-    obj_.warpImage(img, flow)
+    obj_.warpImage(img, flow)    
     
-    '''
     #extract the frames from the image sequences for evaluation on the trained model
     obj = utilsProcessing()
-    obj.extractFrames("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/video_coastguard.mp4")
+    obj.extractFrames("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/hall/video_hall.mp4")
     '''
