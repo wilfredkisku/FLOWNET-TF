@@ -211,8 +211,9 @@ class utilsProcessing:
     def warpImage(self, curImg, flow):
         h, w = flow.shape[:2]
         flow = -flow
-        flow[180:,:,0] += np.arange(w)
-        flow[180:,:,1] += np.arange(h)[:,np.newaxis]
+        flow[:,:,0] += np.arange(w)
+        print(np.arange(h)[:,np.newaxis])
+        flow[:,:,1] += np.arange(h)[:,np.newaxis]
         nxtImg = cv2.remap(curImg, flow, None, cv2.INTER_LINEAR)
 
         cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/sb3_warped.png', nxtImg)
@@ -256,8 +257,8 @@ if __name__ == '__main__':
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi08.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi09.png"
 
-    img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0001.png"
-    img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0002.png"
+    img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0009.png"
+    img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0010.png"
 
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame41.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame43.png"
