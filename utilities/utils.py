@@ -170,7 +170,6 @@ class preprocessing:
         img_b = img_b[180:,:,:]
         plt.imshow(img_a)
         img_stack = np.concatenate((img_a,img_b), axis = 2)
-        print(img_stack.shape)
         pred_flo = np.zeros((1,img_a.shape[0],img_a.shape[1],6), dtype = np.uint8)
         pred_flo[0] = img_stack
         pred_stack = model.predict(pred_flo, verbose=1)
@@ -186,21 +185,24 @@ class preprocessing:
         #requires the .h5 file that has the weights and baises from the trained model
         #requires the path for the two consecutive images for obtaining quiver plot
 
-        for i in range(lpred):
-            pass
+        obj = utilsProcessing()
 
         model = load_model(model_path, compile=False)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
         img_a = img_a[180:,:,:]
         img_b = img_b[180:,:,:]
-        plt.imshow(img_a)
-        img_stack = np.concatenate((img_a,img_b), axis = 2)
-        print(img_stack.shape)
-        pred_flo = np.zeros((1,img_a.shape[0],img_a.shape[1],6), dtype = np.uint8)
-        pred_flo[0] = img_stack
-        pred_stack = model.predict(pred_flo, verbose=1)
 
+        for i in range(lpred):
+            img_stack = np.concatenate((img_a,img_b), axis = 2)
+            pred_flo = np.zeros((1,img_a.shape[0],img_a.shape[1],6), dtype = np.uint8)
+            pred_flo[0] = img_stack
+            pred_stack = model.predict(pred_flo, verbose=1)
+            pre = pred_stack[0]
+
+            img_a = img_b
+            img_b = obj.warpImage(img_b, pre)
+            cv2.imwrite("warped_"+str(i)+".png", img_b)
         return pred
 
 #*****************************************#
@@ -208,17 +210,20 @@ class preprocessing:
 #*****************************************#
 
 class utilsProcessing:
+
+    def __init__(self):
+        pass
+
     def warpImage(self, curImg, flow):
         h, w = flow.shape[:2]
         flow = -flow
         flow[:,:,0] += np.arange(w)
-        print(np.arange(h)[:,np.newaxis])
         flow[:,:,1] += np.arange(h)[:,np.newaxis]
         nxtImg = cv2.remap(curImg, flow, None, cv2.INTER_LINEAR)
 
         cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/sb3_warped.png', nxtImg)
 
-        return None
+        return nxtImg
 
     def filesDisplay(path):
         files = os.listdir(p)
@@ -250,9 +255,20 @@ class utilsProcessing:
                 data = np.fromfile(f, np.float32, count = 2* w * h)
                 data2D = np.resize(data, (h, w, 2))
         return data2D
-
+    
+    def extractFrames(self, path):
+        vid = cv2.VideoCapture(path)
+        success, img = vid.read()
+        count = 0
+        while success:
+            cv2.imwrite("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/coastguard/frame%d.png" % count, img)
+            success, img = vid.read()
+            print("Read a new frame: ", success)
+            count += 1
+        return None
 if __name__ == '__main__':
 
+    '''
     ######## input test images ########
     #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi08.png"
     #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi09.png"
@@ -275,12 +291,6 @@ if __name__ == '__main__':
     img = img[180:,:,:]
     print(flow.shape)
     obj_.warpImage(img, flow)
-    
     '''
     obj = utilsProcessing()
-    objpre = preprocessing()
-    actual = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
-    pred = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0002.flo")
-
-    print(objpre.epeCalculate(actual, pred).numpy())
-    '''
+    obj.extractFrames("/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/videos/video_coastguard.mp4")
