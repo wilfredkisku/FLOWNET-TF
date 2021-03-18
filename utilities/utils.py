@@ -166,8 +166,8 @@ class preprocessing:
         model = load_model(model_path, compile=False)
         img_a = cv2.imread(img_path_1)
         img_b = cv2.imread(img_path_2)
-        img_a = img_a[:128,:,:]
-        img_b = img_b[:128,:,:]
+        img_a = img_a[180:,:,:]
+        img_b = img_b[180:,:,:]
         plt.imshow(img_a)
         img_stack = np.concatenate((img_a,img_b), axis = 2)
         print(img_stack.shape)
@@ -182,6 +182,26 @@ class preprocessing:
         plt.show()
         return pred
 
+    def predictSequence(self, model_path, img_path_1, img_path_2, lpred):
+        #requires the .h5 file that has the weights and baises from the trained model
+        #requires the path for the two consecutive images for obtaining quiver plot
+
+        for i in range(lpred):
+            pass
+
+        model = load_model(model_path, compile=False)
+        img_a = cv2.imread(img_path_1)
+        img_b = cv2.imread(img_path_2)
+        img_a = img_a[180:,:,:]
+        img_b = img_b[180:,:,:]
+        plt.imshow(img_a)
+        img_stack = np.concatenate((img_a,img_b), axis = 2)
+        print(img_stack.shape)
+        pred_flo = np.zeros((1,img_a.shape[0],img_a.shape[1],6), dtype = np.uint8)
+        pred_flo[0] = img_stack
+        pred_stack = model.predict(pred_flo, verbose=1)
+
+        return pred
 
 #*****************************************#
 #*********** Flow Processing *************#
@@ -191,11 +211,11 @@ class utilsProcessing:
     def warpImage(self, curImg, flow):
         h, w = flow.shape[:2]
         flow = -flow
-        flow[:128,:,0] += np.arange(w)
-        flow[:128,:,1] += np.arange(h)[:,np.newaxis]
+        flow[180:,:,0] += np.arange(w)
+        flow[180:,:,1] += np.arange(h)[:,np.newaxis]
         nxtImg = cv2.remap(curImg, flow, None, cv2.INTER_LINEAR)
 
-        cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/car1_warped.png', nxtImg)
+        cv2.imwrite('/home/wilfred/Downloads/github/Python_Projects/flownet-tf/sb3_warped.png', nxtImg)
 
         return None
 
@@ -232,32 +252,28 @@ class utilsProcessing:
 
 if __name__ == '__main__':
 
-    img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi01.png"
-    img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi02.png"
+    ######## input test images ########
+    #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi08.png"
+    #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/cars/files/taxi09.png"
 
-    #img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0001.png"
-    #img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0002.png"
+    img_path_1 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0001.png"
+    img_path_2 = "/home/wilfred/Datasets/testFolder/data/training/clean/alley_1/frame_0002.png"
 
-    #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame39.png"
-    #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame41.png"
+    #img_path_1 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame41.png"
+    #img_path_2 = "/home/wilfred/Downloads/github/Python_Projects/flownet-tf/data/foreman/frame43.png"
 
-    #img_path_1 = "/home/wilfred/Datasets/KITTI/2011_09_26_drive_0017_extract/2011_09_26/2011_09_26_drive_0017_extract/image_01/data/0000000000.png"
-    #img_path_2 = "/home/wilfred/Datasets/KITTI/2011_09_26_drive_0017_extract/2011_09_26/2011_09_26_drive_0017_extract/image_01/data/0000000001.png"
-
+    ####### input trained model #######
     path = '/home/wilfred/Downloads/flowNetS-complete-500-epe.h5'
+    #path = '/home/wilfred/Downloads/flowNetS-complete-2000-epe.h5'
     
     obj = preprocessing()
     flow = obj.predict(path,img_path_1,img_path_2)
     
     obj_ = utilsProcessing()
     img = cv2.imread(img_path_2)
-    img = img[:128,:,:]
+    img = img[180:,:,:]
+    print(flow.shape)
     obj_.warpImage(img, flow)
-    #flow = obj.flowToArray("/home/wilfred/Datasets/testFolder/data/training/flow/alley_1/frame_0001.flo")
-
-    #print(flow.shape)
-
-    #obj.quiverPlot(flow)
     
     '''
     obj = utilsProcessing()
